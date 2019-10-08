@@ -2,9 +2,18 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Moment from 'moment'
 
-const getRouteSummary = (locations) => {
-  const to = Moment(locations[0].time).format('hh:mm DD.MM')
-  const from = Moment(locations[locations.length - 1].time).format('hh:mm DD.MM')
+// Require lodash for quick object manipulation
+import _ from 'lodash'
+
+const getRouteSummary = (location) => {
+  
+  const first = Moment(location[0].time).format('YYYY-MM-DD hh:mm');
+  const secnd  = Moment(location[location.length - 1 ].time).format('YYYY-MM-DD hh:mm');
+  
+  const from = first > secnd ? secnd : first;
+  const to = first > secnd ? first : secnd;
+  // const to = Moment(locations[0].time).format('hh:mm DD.MM')
+  // const from = Moment(locations[locations.length - 1].time).format('hh:mm DD.MM')
   return `${from} - ${to}`
 }
 
@@ -21,6 +30,7 @@ const MapComponent = () => {
   }, [])
   // TODO(Task 2): Request location closest to specified datetime from the back-end.
 
+  
   // Initialize map.
   useEffect(() => {
     map.current = new L.Map('mapid')
@@ -39,17 +49,28 @@ const MapComponent = () => {
     if (!map.current || !locations) {
       return // If map or locations not loaded yet.
     }
+
+    const locationKeys = _.keys(locations);
+    const colors = ['black', 'blue', 'green', 'red', 'yellow', 'pink', 'orange', 'cyan'];
     // TODO(Task 1): Replace the single red polyline by the different segments on the map.
-    const latlons = locations.map(({ lat, lon }) => [lat, lon])
-    const polyline = L.polyline(latlons, { color: 'red' }).bindPopup(getRouteSummary(locations)).addTo(map.current)
-    map.current.fitBounds(polyline.getBounds())
-    return () => map.current.remove(polyline)
+
+    for (let index = 0; index < _.size(locations); index++) {
+      const key = locationKeys[index];
+      // console.log(locations[key]);
+      const latlons = locations[key].map(({ lat, lon }) => [lat, lon])
+      
+      const polyline = L.polyline(latlons, { color: colors[index] }).bindPopup(getRouteSummary(locations[key])).addTo(map.current)
+      map.current.fitBounds(polyline.getBounds())
+      // map.current.remove(polyline)
+    }
+    
+    
   }, [locations, map.current])
   // TODO(Task 2): Display location that the back-end returned on the map as a marker.
 
   return (
     <div>
-      {locations && `${locations.length} locations loaded`}
+      {locations && `${_.size(locations)} locations loaded`}
       {!locations && 'Loading...'}
       <div id='mapid' />
     </div>)
