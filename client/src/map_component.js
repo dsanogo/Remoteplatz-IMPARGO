@@ -58,8 +58,12 @@ const MapComponent = () => {
       const key = locationKeys[index];
       // console.log(locations[key]);
       const latlons = locations[key].map(({ lat, lon }) => [lat, lon])
-      
-      const polyline = L.polyline(latlons, { color: colors[index] }).bindPopup(getRouteSummary(locations[key])).addTo(map.current)
+      console.log(latlons)
+      const polyline = L.polyline(latlons, { color: colors[index] })
+            .bindPopup(getRouteSummary(locations[key]))
+            .addTo(map.current)
+      L.marker(latlons[0], {title: 'Hello World'}).addTo(map.current);
+      L.marker(latlons[latlons.length - 1], {title: 'Hello World'}).addTo(map.current);
       map.current.fitBounds(polyline.getBounds())
       // map.current.remove(polyline)
     }
