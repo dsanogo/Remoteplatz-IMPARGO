@@ -10,6 +10,8 @@ app.use((req, res, next) => {
 })
 
 
+app.use(express.json())
+
 const formatDate = (dateTime) => {
   return moment(dateTime).format('YYYY-MM-DD');
 }
@@ -64,7 +66,14 @@ app.get('/', (req, res) => {
 
 app.get('/location/:when', (req, res) => {
   // TODO(Task 2): Return the tracking data closest to `req.params.when` from `exampleData`.
-  res.send({})
+  const paramTime = req.params.when;
+  const splittedDat = splittedData();
+  const location = splittedDat[moment(paramTime).format('YYYY-MM-DD')].find(loc => {
+    return moment(loc.time).format('YYYY-MM-DD hh:mm') === paramTime;
+  });
+
+  console.log(paramTime, location);
+  res.send(location);
 })
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))

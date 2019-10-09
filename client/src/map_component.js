@@ -1,9 +1,10 @@
 /* global fetch, L */
 import React, { useEffect, useRef, useState } from 'react'
 import Moment from 'moment'
-
 // Require lodash for quick object manipulation
 import _ from 'lodash'
+import moment from 'moment';
+
 
 const getRouteSummary = (location) => {
   
@@ -17,9 +18,11 @@ const getRouteSummary = (location) => {
   return `${from} - ${to}`
 }
 
-const MapComponent = () => {
+const MapComponent = ({loc}) => {
   const map = useRef()
   const [locations, setLocations] = useState()
+  const [marker, setmarker] = useState();
+
   // Request location data.
   useEffect(() => {
     fetch('http://localhost:3000')
@@ -50,33 +53,50 @@ const MapComponent = () => {
       return // If map or locations not loaded yet.
     }
 
-    const locationKeys = _.keys(locations);
-    const colors = ['black', 'blue', 'green', 'red', 'yellow', 'pink', 'orange', 'cyan'];
-    // TODO(Task 1): Replace the single red polyline by the different segments on the map.
 
+    // TODO(Task 1): Replace the single red polyline by the different segments on the map.
+    // Get the location key -> the Days
+    const locationKeys = _.keys(locations);
+    // Each color corrspond to a day
+    const colors = ['black', 'blue', 'red', 'green', 'yellow', 'orange', 'cadetblue', 'cyan'];
+
+    // Loop through the locations and display them in the map
     for (let index = 0; index < _.size(locations); index++) {
       const key = locationKeys[index];
-      // console.log(locations[key]);
+      
       const latlons = locations[key].map(({ lat, lon }) => [lat, lon])
-      console.log(latlons)
       const polyline = L.polyline(latlons, { color: colors[index] })
             .bindPopup(getRouteSummary(locations[key]))
             .addTo(map.current)
-      L.marker(latlons[0], {title: 'Hello World'}).addTo(map.current);
-      L.marker(latlons[latlons.length - 1], {title: 'Hello World'}).addTo(map.current);
+      
       map.current.fitBounds(polyline.getBounds())
-      // map.current.remove(polyline)
+      // return () => map.current.remove(polyline)
     }
     
-    
   }, [locations, map.current])
-  // TODO(Task 2): Display location that the back-end returned on the map as a marker.
 
+  // TODO(Task 2): Display location that the back-end returned on the map as a marker.
+  useEffect(() => {
+  
+    // Remove the marker if was set to avoid multi marker on the map
+    if(marker !== undefined) {
+      map.current.removeLayer(marker);
+    }
+
+    // If location selected from the props, then mark in the map
+    if(loc){
+      let theMarker = L.marker([loc.lat, loc.lon], {title: moment(loc.time).format('YYYY-MM-DD hh:mm')})
+                      .addTo(map.current);
+      setmarker(theMarker)
+    }
+
+  }, [loc])
   return (
     <div>
       {locations && `${_.size(locations)} locations loaded`}
       {!locations && 'Loading...'}
       <div id='mapid' />
+      
     </div>)
 }
 
